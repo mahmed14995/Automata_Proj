@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DFA Simulator</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #f2f2f2;
+        }
+        .container {
+            width: 750px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        h1 {
+            color: #003366;
+            text-align: center;
+        }
+        textarea {
+            width: 100%;
+            height: 220px;
+            font-family: Consolas;
+        }
+        select, input, button {
+            padding: 8px;
+            margin: 5px 0;
+        }
+        button {
+            background: #003366;
+            color: white;
+            border: none;
+        }
+        .result {
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <h1>DFA String Acceptance Simulator</h1>
+
+    <form method="POST">
+        <label><b>Select Regular Expression:</b></label><br>
+        <select name="regex">
+            <option value="(a|b)*ab" {% if regex == "(a|b)*ab" %}selected{% endif %}>(a|b)*ab</option>
+            <option value="a*" {% if regex == "a*" %}selected{% endif %}>a*</option>
+            <option value="ab*" {% if regex == "ab*" %}selected{% endif %}>ab*</option>
+            <option value="(ab)*" {% if regex == "(ab)*" %}selected{% endif %}>(ab)*</option>
+        </select><br><br>
+
+        <input type="text" name="input_string" placeholder="Enter input string" required>
+        <br>
+        <button type="submit">Simulate DFA</button>
+    </form>
+
+    <br>
+
+    <textarea readonly>{{ log }}</textarea>
+
+    <div class="result">{{ result }}</div>
+</div>
+</body>
+</html>
+py

@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DFA String Acceptance Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: auto;
+        }
+        
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .box {
+            background: white;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        
+        .box h2 {
+            color: #003366;
+            margin-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .box h3 {
+            color: #003366;
+            margin: 15px 0 10px 0;
+        }
+        
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        select, input, button {
+            padding: 12px;
+            margin-top: 5px;
+            width: 100%;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #667eea;
+            overflow-x: auto;
+            line-height: 1.6;
+        }
+        
+        .result {
+            font-size: 18px;
+            font-weight: bold;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 15px;
+            line-height: 1.6;
+        }
+        
+        .result.accepted {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            color: #155724;
+            border: 3px solid #28a745;
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+        
+        .result.rejected {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            color: #721c24;
+            border: 3px solid #dc3545;
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+        
+        .result.invalid {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            color: #856404;
+            border: 3px solid #ffc107;
+            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+        }
+        
+        .regex-display {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 5px solid #2196F3;
+        }
+        
+        .regex-display h3 {
+            color: #1565C0;
+            margin: 0 0 10px 0;
+            font-size: 18px;
+        }
+        
+        .regex-display .regex-text {
+            font-family: 'Courier New', monospace;
+            font-size: 20px;
+            font-weight: bold;
+            color: #0D47A1;
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            display: inline-block;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .regex-display .description {
+            margin-top: 10px;
+            color: #424242;
+            font-size: 14px;
+            font-style: italic;
+        }
+        
+        .transition-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        .transition-table th,
+        .transition-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+        
+        .transition-table th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .transition-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .transition-table tr:hover {
+            background: #e9ecef;
+        }
+        
+        #dfa-diagram {
+            width: 100%;
+            height: 500px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background: #ffffff;
+            position: relative;
+            overflow: visible;
+        }
+        
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .grid-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .function-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .function-list li {
+            padding: 8px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 4px;
+            border-left: 3px solid #667eea;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🔄 DFA String Acceptance Simulator</h1>
+
+    <div class="box">
+        <h2>📋 Configure DFA</h2>
+        
+        <form method="POST">
+            <label>Select Regular Expression:</label>
+            <select name="regex" onchange="this.form.submit()">
+                <option value="contains_01" {% if selected_regex=="contains_01" %}selected{% endif %}>
+                    Contains '01' as substring
+                </option>
+                <option value="alternating" {% if selected_regex=="alternating" %}selected{% endif %}>
+                    Alternating 0s and 1s
+                </option>
+                <option value="even_0s" {% if selected_regex=="even_0s" %}selected{% endif %}>
+                    Even number of 0s
+                </option>
+                <option value="contains_ab" {% if selected_regex=="contains_ab" %}selected{% endif %}>
+                    Contains 'ab' as substring
+                </option>
+                <option value="not_ends_01" {% if selected_regex=="not_ends_01" %}selected{% endif %}>
+                    Does NOT end with '01'
+                </option>
+                <option value="odd_1s" {% if selected_regex=="odd_1s" %}selected{% endif %}>
+                    Odd number of 1s
+                </option>
+                <option value="contains_aa" {% if selected_regex=="contains_aa" %}selected{% endif %}>
+                    Contains 'aa' as substring
+                </option>
+            </select>
+
+            <label>Enter String to Test:</label>
+            <input type="text" name="string" placeholder="e.g., 0101 or ab" value="{{ input_string }}">
+
+            <button type="submit">🚀 Simulate DFA</button>
+        </form>
+    </div>
+
+    {% if dfa_info %}
+    <div class="box">
+        <div class="regex-display">
+            <h3>📐 Regular Expression</h3>
+            <div class="regex-text">{{ dfa_info.regex }}</div>
+            <div class="description">{{ dfa_info.description }}</div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if transition_table %}
+    <div class="grid-layout">
+        <div class="box">
+            <h2>📊 Transition Table</h2>
+            {{ transition_table|safe }}
+            <p style="margin-top: 10px; font-size: 14px; color: #666;">
+                <strong>→</strong> Start State | <strong>+</strong> Final State
+            </p>
+        </div>
+
+        <div class="box">
+            <h2>⚙️ Transition Function</h2>
+            <ul class="function-list">
+            {% for func in transition_function %}
+                <li>{{ func }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if diagram_data %}
+    <div class="box">
+        <h2>🎨 DFA Diagram</h2>
+        <svg id="dfa-diagram" width="100%" height="400">
+            <defs>
+                <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                    <polygon points="0 0, 10 3, 0 6" fill="#667eea" />
+                </marker>
+            </defs>
+            
+            <g id="edges"></g>
+            <g id="nodes"></g>
+        </svg>
+        
+        <script>
+            const diagramData = {{ diagram_data|tojson }};
+            const svg = document.getElementById('dfa-diagram');
+            const svgWidth = svg.clientWidth;
+            const svgHeight = 400;
+
+            const nodeCount = diagramData.nodes.length;
+            const radius = Math.min(svgWidth, svgHeight) * 0.35;
+            const centerX = svgWidth / 2;
+            const centerY = svgHeight / 2;
+
+            const nodePositions = {};
+            diagramData.nodes.forEach((node, index) => {
+                const angle = (2 * Math.PI * index) / nodeCount - Math.PI / 2;
+                nodePositions[node.id] = {
+                    x: centerX + radius * Math.cos(angle),
+                    y: centerY + radius * Math.sin(angle)
+                };
+            });
+
+            const edgesGroup = document.getElementById('edges');
+            const edgeCounts = {};
+
+            diagramData.edges.forEach((edge, idx) => {
+                const from = nodePositions[edge.from];
+                const to = nodePositions[edge.to];
+
+                if (edge.from === edge.to) {
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    const loopSize = 40;
+                    path.setAttribute('d', `M ${from.x} ${from.y - 30} Q ${from.x + loopSize} ${from.y - loopSize} ${from.x + 30} ${from.y}`);
+                    path.setAttribute('stroke', '#667eea');
+                    path.setAttribute('stroke-width', '2');
+                    path.setAttribute('fill', 'none');
+                    path.setAttribute('marker-end', 'url(#arrowhead)');
+                    edgesGroup.appendChild(path);
+
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('x', from.x + loopSize);
+                    text.setAttribute('y', from.y - loopSize);
+                    text.setAttribute('text-anchor', 'middle');
+                    text.setAttribute('fill', '#003366');
+                    text.setAttribute('font-weight', 'bold');
+                    text.textContent = edge.label;
+                    edgesGroup.appendChild(text);
+                } else {
+                    const key = `${edge.from}->${edge.to}`;
+                    if (!edgeCounts[key]) edgeCounts[key] = 0;
+                    const parallelIndex = edgeCounts[key]++;
+                    
+                    const dx = to.x - from.x;
+                    const dy = to.y - from.y;
+                    const distance = Math.sqrt(dx*dx + dy*dy);
+                    const offset = 30;
+
+                    const startX = from.x + (dx / distance) * offset;
+                    const startY = from.y + (dy / distance) * offset;
+                    const endX = to.x - (dx / distance) * offset;
+                    const endY = to.y - (dy / distance) * offset;
+
+                    const curve = 20 * (parallelIndex*2 + 1);
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.setAttribute('d', `M ${startX} ${startY} Q ${(startX+endX)/2 - dy/distance*curve} ${(startY+endY)/2 + dx/distance*curve} ${endX} ${endY}`);
+                    path.setAttribute('stroke', '#667eea');
+                    path.setAttribute('stroke-width', '2');
+                    path.setAttribute('fill', 'none');
+                    path.setAttribute('marker-end', 'url(#arrowhead)');
+                    edgesGroup.appendChild(path);
+
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('x', (startX + endX)/2 - dy/distance*curve);
+                    text.setAttribute('y', (startY + endY)/2 + dx/distance*curve - 5);
+                    text.setAttribute('text-anchor', 'middle');
+                    text.setAttribute('fill', '#003366');
+                    text.setAttribute('font-weight', 'bold');
+                    text.textContent = edge.label;
+                    edgesGroup.appendChild(text);
+                }
+            });
+
+            const nodesGroup = document.getElementById('nodes');
+            diagramData.nodes.forEach(node => {
+                const pos = nodePositions[node.id];
+
+                if (node.type.includes('final')) {
+                    const outerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    outerCircle.setAttribute('cx', pos.x);
+                    outerCircle.setAttribute('cy', pos.y);
+                    outerCircle.setAttribute('r', '35');
+                    outerCircle.setAttribute('stroke', '#667eea');
+                    outerCircle.setAttribute('stroke-width', '2');
+                    outerCircle.setAttribute('fill', 'none');
+                    nodesGroup.appendChild(outerCircle);
+                }
+
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', pos.x);
+                circle.setAttribute('cy', pos.y);
+                circle.setAttribute('r', '30');
+                circle.setAttribute('fill', 'white');
+                circle.setAttribute('stroke', '#667eea');
+                circle.setAttribute('stroke-width', '3');
+                nodesGroup.appendChild(circle);
+
+                if (node.type.includes('start')) {
+                    const startArrow = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    startArrow.setAttribute('x1', pos.x - 60);
+                    startArrow.setAttribute('y1', pos.y);
+                    startArrow.setAttribute('x2', pos.x - 35);
+                    startArrow.setAttribute('y2', pos.y);
+                    startArrow.setAttribute('stroke', '#28a745');
+                    startArrow.setAttribute('stroke-width', '3');
+                    startArrow.setAttribute('marker-end', 'url(#arrowhead)');
+                    nodesGroup.appendChild(startArrow);
+                    
+                    const startText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    startText.setAttribute('x', pos.x - 70);
+                    startText.setAttribute('y', pos.y + 5);
+                    startText.setAttribute('text-anchor', 'end');
+                    startText.setAttribute('fill', '#28a745');
+                    startText.setAttribute('font-weight', 'bold');
+                    startText.setAttribute('font-size', '14');
+                    startText.textContent = 'Start';
+                    nodesGroup.appendChild(startText);
+                }
+
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', pos.x);
+                text.setAttribute('y', pos.y + 5);
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('fill', '#003366');
+                text.setAttribute('font-weight', 'bold');
+                text.setAttribute('font-size', '16');
+                text.textContent = node.id;
+                nodesGroup.appendChild(text);
+            });
+        </script>
+    </div>
+    {% endif %}
+
+    {% if steps %}
+    <div class="box">
+        <h2>🔍 Simulation Steps</h2>
+        <pre>{% for step in steps %}{{ step }}
+{% endfor %}</pre>
+
+        {% if result %}
+            {% if "VALID & ACCEPTED" in result %}
+                <div class="result accepted">{{ result }}</div>
+            {% elif "INVALID" in result %}
+                <div class="result invalid">{{ result }}</div>
+            {% else %}
+                <div class="result rejected">{{ result }}</div>
+            {% endif %}
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+</body>
+</html>
